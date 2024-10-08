@@ -168,7 +168,7 @@ def process_image(image):
     return image,Hrg,Hrb,Hblg,Hblb,centroids
 
 for i in range(1,12):
-    path = "E:\\Kardarshev Scale\\Resources\\TestCasesUAS\\uas takimages\\uas takimages\\"
+    path = "E:\\Kardarshev Scale\\UASVictory\\TestCasesUAS\\uas takimages\\uas takimages\\"
     path = path + str(i) + ".png"
     image = cv.imread(path) 
     result_image,Hrg,Hrb,Hblg,Hblb,centroids= process_image(image)
