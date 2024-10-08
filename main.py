@@ -1,6 +1,7 @@
 import cv2 as cv
 import numpy as np
 from pointpolytest import *
+from Rplanning import *
 
 prlist=[]
 prioritylist=[]
@@ -52,7 +53,7 @@ def houses(image, mask_red, mask_blue):
     blue_houses = 0
     red_centroids=[]
     blue_centroids=[]
-
+    centroids=[]
     
     for rcontour in contours_red:
         area=cv.contourArea(rcontour)
@@ -83,6 +84,8 @@ def houses(image, mask_red, mask_blue):
             cv.circle(image, (cXb, cYb), 5, (255, 255, 255), -1)
             blue_centroids.append({'centre':(cXb,cYb)})
 
+    centroids=red_centroids+blue_centroids
+
 
     # centroids=[]
     # for contour in contours:
@@ -96,7 +99,7 @@ def houses(image, mask_red, mask_blue):
     #         cv.circle(image, (cX, cY), 5, (255, 255, 255), -1)
     #         centroids.append({'centre':(cX,cY)})
     # print(len(red_centroids),len(blue_centroids))
-    return red_houses, blue_houses, red_centroids, blue_centroids
+    return red_houses, blue_houses, red_centroids, blue_centroids,centroids
 
 
 def process_image(image):
@@ -107,15 +110,15 @@ def process_image(image):
     image = overlay(image, mask_brown, [0, 255, 255])  # Yellow on brown
     image = overlay(image, mask_green, [255, 255, 0])  # Cyan on green
     
-    red_houses, blue_houses,_,_= houses(image, mask_red, mask_blue)
+    red_houses, blue_houses,_,_,_= houses(image, mask_red, mask_blue)
     # print((red_houses),(blue_houses))
     
 
     green_contours,_=cv.findContours(mask_green,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)
     brown_contours,_=cv.findContours(mask_brown,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE)
 
-    _,_,red_centroids,_=houses(image,mask_red,mask_blue)
-    _,_,_,blue_centroids=houses(image,mask_red,mask_blue)
+    _,_,red_centroids,blue_centroids,centroids=houses(image,mask_red,mask_blue)
+
 
 
     Hrg=0
@@ -150,7 +153,7 @@ def process_image(image):
     # print(f"Blue Houses in brown region={Hblb}")  
 
 
-   
+    
     
     # return       
 
@@ -162,13 +165,13 @@ def process_image(image):
     # print("Number of houses on brown region:", Hb)
     # print("Sum of priorities (Green region, Brown region):", priority_sums)
     
-    return image,Hrg,Hrb,Hblg,Hblb
+    return image,Hrg,Hrb,Hblg,Hblb,centroids
 
 for i in range(1,12):
     path = "E:\\Kardarshev Scale\\Resources\\TestCasesUAS\\uas takimages\\uas takimages\\"
     path = path + str(i) + ".png"
     image = cv.imread(path) 
-    result_image,Hrg,Hrb,Hblg,Hblb = process_image(image)
+    result_image,Hrg,Hrb,Hblg,Hblb,centroids= process_image(image)
 
     no_burnt=Hrb+Hblb
     no_green=Hrg+Hblg
@@ -190,9 +193,20 @@ for i in range(1,12):
     Pr=Pb/Pg
 
     prlist.append(Pr)
+    # print=centroids
+
+    path = nearest_neighbor(centroids)
+    draw_path(result_image, path)
+
+    # path, total_distance = nearest_neighbor_path(centroids, result_image)
+    # print("Path:", path)
+    # print("Total Distance:", total_distance)
+    # cv.imshow("Path on Image", image)
+    # combined_image = cv.hconcat(result_image)
+
     cv.imshow(('Result'+str(i)), result_image)
-    cv.waitKey()
-    # cv.destroyAllWindows()
+    cv.waitKey(500)
+    cv.destroyAllWindows()
 
 
 print('no_houses=',no_houses)
@@ -212,6 +226,9 @@ sorted_dict={keys[i]:values[i] for i in sorted_values_index}
 
 sorted_images=list(sorted_dict.keys())
 print("sequence in terms of rescue ratio in descending order=",sorted_images[::-1])
+
+
+
 
 
 
